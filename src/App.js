@@ -1,23 +1,66 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import DataTable from 'react-data-table-component';
+import axios from 'axios';
+
+const columns = [
+  {
+    name: 'Avatar',
+    cell: row => (
+      <img height='30px' width='30px' alt={row.first_name} src={row.avatar} />
+    ),
+  },
+  {
+    name: 'First Name',
+    selector: 'first_name',
+  },
+  {
+    name: 'Last Name',
+    selector: 'last_name',
+  },
+  {
+    name: 'Email',
+    selector: 'email',
+  },
+];
 
 function App() {
+  const [users, setUsers] = useState({});
+  const [page, setPage] = useState(1);
+  const countPerPage = 4;
+
+  const getUserList = () => {
+    axios
+      .get(
+        `https://reqres.in/api/users?page=${page}&per_page=${countPerPage}&delay=1`
+      )
+      .then(res => {
+        setUsers(res.data);
+      })
+      .catch(err => {
+        setUsers({});
+      });
+  };
+
+  useEffect(() => {
+    getUserList();
+  }, [page]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='App'>
+      <DataTable
+        title='Employees'
+        columns={columns}
+        data={users.data}
+        highlightOnHover
+        pagination
+        paginationServer
+        paginationTotalRows={users.total}
+        paginationPerPage={countPerPage}
+        paginationComponentOptions={{
+          noRowsPerPage: true,
+        }}
+        onChangePage={page => setPage(page)}
+      />
     </div>
   );
 }
